@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>可交互的爱心</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            position: relative;
+        }
+
+        .heart {
+            width: 200px;
+            height: 180px;
+            position: relative;
+            cursor: pointer;
+            margin: 0 auto 30px;
+            transition: all 0.3s ease;
+        }
+
+        .heart::before,
+        .heart::after {
+            content: '';
+            position: absolute;
+            width: 100px;
+            height: 160px;
+            background: #ff4757;
+            border-radius: 50px 50px 0 0;
+            transform: rotate(-45deg);
+            transform-origin: 0 100%;
+            transition: all 0.3s ease;
+        }
+
+        .heart::after {
+            left: 0;
+            transform: rotate(45deg);
+            transform-origin: 100% 100%;
+        }
+
+        .heart:hover:not(.beating):not(.clicked) {
+            transform: scale(1.1);
+        }
+
+        .heart.beating {
+            animation: heartbeat 0.6s ease-in-out;
+        }
+
+        .heart.clicked {
+            animation: heartPulse 0.8s ease-out;
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes heartPulse {
+            0% { transform: scale(1); }
+            25% { transform: scale(1.25); }
+            50% { transform: scale(1.1); }
+            75% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .message {
+            color: white;
+            font-size: 24px;
+            margin-bottom: 20px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .counter {
+            color: white;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #ff4757;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float 3s ease-out forwards;
+        }
+
+        @keyframes float {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px) scale(0);
+            }
+        }
+
+        .controls {
+            margin-top: 30px;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+            padding: 10px 20px;
+            margin: 0 10px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* 鼠标拖尾效果 */
+        .cursor-trail {
+            position: fixed;
+            width: 12px;
+            height: 12px;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .cursor-trail::before {
+            content: '💖';
+            position: absolute;
+            font-size: 12px;
+            animation: trailFade 1s ease-out forwards;
+        }
+
+        @keyframes trailFade {
+            0% {
+                opacity: 1;
+                transform: scale(1) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.3) rotate(180deg);
+            }
+        }
+
+        /* 惊喜模态框 */
+        .surprise-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s ease;
+        }
+
+        .surprise-modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .surprise-content {
+            background: linear-gradient(45deg, #ff6b9d, #ffa8c5);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+            transform: scale(0.5) rotate(-10deg);
+            transition: all 0.5s ease;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .surprise-modal.show .surprise-content {
+            transform: scale(1) rotate(0deg);
+        }
+
+        .surprise-title {
+            font-size: 28px;
+            color: white;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .surprise-message {
+            font-size: 18px;
+            color: white;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .surprise-hearts {
+            font-size: 40px;
+            margin: 20px 0;
+            animation: surpriseHeartBeat 1s ease-in-out infinite;
+        }
+
+        @keyframes surpriseHeartBeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        .close-surprise {
+            background: rgba(255, 255, 255, 0.9);
+            color: #ff6b9d;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .close-surprise:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 烟花效果 */
+        .firework {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .firework-particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            animation: explode 1.5s ease-out forwards;
+        }
+
+        @keyframes explode {
+            0% {
+                opacity: 1;
+                transform: scale(0) translate(0, 0);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(1) translate(var(--dx), var(--dy));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="message" id="message">点击爱心来感受爱意 💕</div>
+        
+        <div class="heart" id="heart"></div>
+        
+        <div class="counter">
+            你已经点击了 <span id="clickCount">0</span> 次
+        </div>
+        
+        <div class="controls">
+            <button class="btn" onclick="resetHeart()">重置</button>
+            <button class="btn" onclick="autoBeating()">自动跳动</button>
+        </div>
+        
+        <div class="particles" id="particles"></div>
+        
+        <!-- 惊喜模态框 -->
+        <div class="surprise-modal" id="surpriseModal">
+            <div class="surprise-content">
+                <div class="surprise-title" id="surpriseTitle">🎉 恭喜你！🎉</div>
+                <div class="surprise-hearts">💖💕💗💓💝</div>
+                <div class="surprise-message" id="surpriseMessage">
+                    哇！你已经点击了50次！<br>
+                    你的爱心能量已经满格啦！<br>
+                    ✨ 获得特殊称号：爱心大师 ✨
+                </div>
+                <button class="close-surprise" onclick="closeSurprise()">继续传递爱意 💕</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let clickCount = 0;
+        let isAutoBeating = false;
+        let autoInterval;
+        
+        const heart = document.getElementById('heart');
+        const message = document.getElementById('message');
+        const clickCountElement = document.getElementById('clickCount');
+        const particles = document.getElementById('particles');
+        const surpriseModal = document.getElementById('surpriseModal');
+        const surpriseTitle = document.getElementById('surpriseTitle');
+        const surpriseMessage = document.getElementById('surpriseMessage');
+        
+        const messages = [
+            "点击爱心来感受爱意 💕",
+            "哇！爱心在跳动 💓",
+            "感受到满满的爱意 ❤️",
+            "爱意正在传递中... 💖",
+            "你的心也在跳动吗？ 💗",
+            "爱让世界更美好 🌟",
+            "继续传递爱的能量 ✨",
+            "爱心满满！ 💝"
+        ];
+
+        const surpriseMessages = [
+            {
+                title: "🎉 爱心新手 🎉",
+                message: "恭喜！你已经点击了50次！<br>你是一个充满爱意的人！<br>✨ 获得称号：爱心新手 ✨"
+            },
+            {
+                title: "💖 爱心达人 💖", 
+                message: "太棒了！你已经点击了100次！<br>你的爱心能量越来越强！<br>🌟 获得称号：爱心达人 🌟"
+            },
+            {
+                title: "👑 爱心大师 👑",
+                message: "不可思议！你已经点击了150次！<br>你就是传说中的爱心大师！<br>👑 获得称号：爱心大师 👑"
+            },
+            {
+                title: "🚀 爱心传奇 🚀",
+                message: "震撼全场！你已经点击了200次！<br>你的爱已经传遍了整个宇宙！<br>🚀 获得称号：爱心传奇 🚀"
+            },
+            {
+                title: "🌟 爱心之神 🌟",
+                message: "登峰造极！你已经点击了250次！<br>你已经成为了爱心之神！<br>🌟 无上荣耀：爱心之神 🌟"
+            }
+        ];
+        
+        // 鼠标拖尾效果
+        let mouseX = 0, mouseY = 0;
+        document.addEventListener('mousemove', function(e) {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            // 创建拖尾
+            if (Math.random() > 0.7) { // 随机生成，不要太密集
+                createTrail(mouseX, mouseY);
+            }
+        });
+        
+        function createTrail(x, y) {
+            const trail = document.createElement('div');
+            trail.className = 'cursor-trail';
+            trail.style.left = x + 'px';
+            trail.style.top = y + 'px';
+            document.body.appendChild(trail);
+            
+            setTimeout(() => {
+                trail.remove();
+            }, 1000);
+        }
+        
+        // 显示初始消息
+        setTimeout(() => {
+            message.classList.add('show');
+        }, 500);
+        
+        heart.addEventListener('click', function() {
+            if (isAutoBeating) return;
+            
+            clickCount++;
+            clickCountElement.textContent = clickCount;
+            
+            // 检查是否达到惊喜条件
+            if (clickCount % 50 === 0) {
+                showSurprise();
+            }
+            
+            // 添加点击动画
+            heart.classList.add('clicked');
+            setTimeout(() => {
+                heart.classList.remove('clicked');
+            }, 800);
+            
+            // 添加跳动效果
+            heart.classList.add('beating');
+            setTimeout(() => {
+                heart.classList.remove('beating');
+            }, 600);
+            
+            // 更新消息
+            const messageIndex = Math.min(clickCount, messages.length - 1);
+            message.textContent = messages[messageIndex];
+            
+            // 创建粒子效果
+            createParticles();
+            
+            // 改变爱心颜色
+            if (clickCount > 5) {
+                heart.style.filter = `hue-rotate(${clickCount * 20}deg)`;
+            }
+        });
+        
+        function showSurprise() {
+            const surpriseIndex = Math.min(Math.floor(clickCount / 50) - 1, surpriseMessages.length - 1);
+            const surprise = surpriseMessages[surpriseIndex];
+            
+            surpriseTitle.textContent = surprise.title;
+            surpriseMessage.innerHTML = surprise.message;
+            
+            surpriseModal.classList.add('show');
+            
+            // 创建烟花效果
+            createFireworks();
+            
+            // 播放特殊音效（模拟）
+            createCelebrationParticles();
+        }
+        
+        function closeSurprise() {
+            surpriseModal.classList.remove('show');
+        }
+        
+        function createFireworks() {
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const firework = document.createElement('div');
+                    firework.className = 'firework';
+                    firework.style.left = Math.random() * window.innerWidth + 'px';
+                    firework.style.top = Math.random() * window.innerHeight + 'px';
+                    
+                    const colors = ['#ff4757', '#ff6b9d', '#ffa8c5', '#74b9ff', '#fdcb6e'];
+                    
+                    for (let j = 0; j < 8; j++) {
+                        const particle = document.createElement('div');
+                        particle.className = 'firework-particle';
+                        particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                        
+                        const angle = (j / 8) * Math.PI * 2;
+                        const distance = 50 + Math.random() * 50;
+                        const dx = Math.cos(angle) * distance;
+                        const dy = Math.sin(angle) * distance;
+                        
+                        particle.style.setProperty('--dx', dx + 'px');
+                        particle.style.setProperty('--dy', dy + 'px');
+                        
+                        firework.appendChild(particle);
+                    }
+                    
+                    document.body.appendChild(firework);
+                    
+                    setTimeout(() => {
+                        firework.remove();
+                    }, 1500);
+                }, i * 100);
+            }
+        }
+        
+        function createCelebrationParticles() {
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const particle = document.createElement('div');
+                    particle.style.position = 'fixed';
+                    particle.style.left = Math.random() * window.innerWidth + 'px';
+                    particle.style.top = '-10px';
+                    particle.style.fontSize = '20px';
+                    particle.style.pointerEvents = 'none';
+                    particle.style.zIndex = '9999';
+                    
+                    const emojis = ['💖', '💕', '💗', '💓', '💝', '🌟', '✨', '🎉', '🎊'];
+                    particle.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                    
+                    particle.style.animation = `float ${2 + Math.random() * 2}s ease-out forwards`;
+                    
+                    document.body.appendChild(particle);
+                    
+                    setTimeout(() => {
+                        particle.remove();
+                    }, 4000);
+                }, i * 50);
+            }
+        }
+        
+        function createParticles() {
+            for (let i = 0; i < 8; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                const heartRect = heart.getBoundingClientRect();
+                const containerRect = particles.getBoundingClientRect();
+                
+                particle.style.left = (heartRect.left - containerRect.left + heartRect.width/2) + 'px';
+                particle.style.top = (heartRect.top - containerRect.top + heartRect.height/2) + 'px';
+                particle.style.left = `calc(50% + ${(Math.random() - 0.5) * 100}px)`;
+                particle.style.top = `calc(50% + ${(Math.random() - 0.5) * 100}px)`;
+                
+                particles.appendChild(particle);
+                
+                setTimeout(() => {
+                    particle.remove();
+                }, 3000);
+            }
+        }
+        
+        function resetHeart() {
+            clickCount = 0;
+            clickCountElement.textContent = clickCount;
+            message.textContent = messages[0];
+            heart.style.filter = 'none';
+            
+            if (isAutoBeating) {
+                clearInterval(autoInterval);
+                isAutoBeating = false;
+            }
+        }
+        
+        function autoBeating() {
+            if (isAutoBeating) {
+                clearInterval(autoInterval);
+                isAutoBeating = false;
+                return;
+            }
+            
+            isAutoBeating = true;
+            message.textContent = "爱心正在自动跳动 💓";
+            
+            autoInterval = setInterval(() => {
+                heart.classList.add('beating');
+                createParticles();
+                
+                setTimeout(() => {
+                    heart.classList.remove('beating');
+                }, 600);
+                
+                clickCount++;
+                clickCountElement.textContent = clickCount;
+                heart.style.filter = `hue-rotate(${clickCount * 10}deg)`;
+                
+                // 检查惊喜条件
+                if (clickCount % 50 === 0) {
+                    clearInterval(autoInterval);
+                    isAutoBeating = false;
+                    showSurprise();
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
