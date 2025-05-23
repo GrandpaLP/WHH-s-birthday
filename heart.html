@@ -247,12 +247,13 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: 5;
+            /* MODIFICATION: Adjusted z-index to ensure particles are visible above the heart */
+            z-index: 15; /* Was 5, needs to be >.container's z-index (10) for heart, but < combo (100) and achievement (1000) */
         }
 
         .floating-heart {
             position: absolute;
-            font-size: 20px;
+            font-size: 20px; /* Base size, will be overridden by JS */
             pointer-events: none;
             animation: floatUp 3s ease-out forwards;
         }
@@ -270,16 +271,19 @@
 
         .combo-display {
             position: absolute;
-            top: 50%;
+            /* MODIFICATION: Adjusted top position to be lower */
+            top: 70%; /* Was 50%, moved down to avoid heart */
             left: 50%;
             transform: translate(-50%, -50%);
             font-size: 48px;
             font-weight: bold;
-            color: #ff4757;
+            color: #ff4757; /* Default color */
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            opacity: 0;
+            opacity: 0; /* Initial state for fade-in */
             pointer-events: none;
             z-index: 100;
+            /* MODIFICATION: Added transition for smooth fade-out */
+            transition: opacity 0.4s ease-out, transform 0.4s ease-out;
         }
 
         .achievement {
@@ -314,6 +318,10 @@
             
             .love-bar {
                 width: 250px;
+            }
+             .combo-display {
+                font-size: 38px; /* Slightly smaller on mobile */
+                top: 75%; /* Adjust for mobile if necessary */
             }
         }
     </style>
@@ -383,20 +391,21 @@
         const lovePercentage = document.getElementById('lovePercentage');
         const specialEffects = document.getElementById('specialEffects');
         const comboDisplay = document.getElementById('comboDisplay');
+        let comboTimeoutId;
         const achievement = document.getElementById('achievement');
         const autoBtn = document.getElementById('autoBtn');
         
         const messages = [
-            "点击爱心来感受我们的爱意 💕",
-            "哇！爱心在为你跳动 💓",
-            "感受到满满的爱意了吗？ ❤️",
-            "我的心也在为你跳动... 💖",
-            "这就是爱的感觉 💗",
-            "你让我的世界更美好 🌟",
-            "爱意正在加倍传递中... ✨",
-            "每次跳动都是对你的思念 💝",
-            "我们的爱越来越深了 💞",
-            "这份爱永远属于我们 💘"
+            "点击爱心来感受我们的爱意 💕", // 0
+            "哇！爱心在为你跳动 💓",   // 1 (10 clicks)
+            "感受到满满的爱意了吗？ ❤️", // 2 (20 clicks)
+            "我的心也在为你跳动... 💖", // 3 (30 clicks)
+            "这就是爱的感觉 💗",       // 4 (40 clicks)
+            "你让我的世界更美好 🌟",   // 5 (50 clicks)
+            "爱意正在加倍传递中... ✨", // 6 (60 clicks)
+            "每次跳动都是对你的思念 💝", // 7 (70 clicks)
+            "我们的爱越来越深了 💞",   // 8 (80 clicks)
+            "这份爱永远属于我们 💘"    // 9 (90 clicks)
         ];
 
         const achievements = [
@@ -404,7 +413,7 @@
             { title: "💖 心动时刻", desc: "连续点击10次，心跳加速中", clicks: 10 },
             { title: "🌟 爱意满满", desc: "点击25次，爱意已经满溢", clicks: 25 },
             { title: "💝 深情款款", desc: "点击50次，深深爱上了你", clicks: 50 },
-            { title: "👑 爱情王者", desc: "点击100次，你就是我的女王", clicks: 100 },
+            { title: "👑 爱情王者", desc: "点击100次，你就是我的女王/国王", clicks: 100 }, // MODIFICATION: More inclusive
             { title: "🚀 爱至深处", desc: "点击200次，爱你到宇宙尽头", clicks: 200 }
         ];
 
@@ -415,6 +424,7 @@
         // 创建星星背景
         function createStars() {
             const starsContainer = document.getElementById('stars');
+            if (!starsContainer) return; // Defensive check
             for (let i = 0; i < 100; i++) {
                 const star = document.createElement('div');
                 star.className = 'star';
@@ -439,8 +449,7 @@
             
             const currentTime = Date.now();
             
-            // 连击判断
-            if (currentTime - lastClickTime < 1000) {
+            if (currentTime - lastClickTime < 1000) { // 1 second combo window
                 currentCombo++;
             } else {
                 currentCombo = 1;
@@ -453,7 +462,6 @@
             
             lastClickTime = currentTime;
             
-            // 显示连击
             if (currentCombo > 1) {
                 showCombo(currentCombo);
             }
@@ -461,28 +469,43 @@
             clickCount++;
             clickCountElement.textContent = clickCount;
             
-            // 更新爱意值和等级
             updateLoveLevel();
-            
-            // 检查成就
             checkAchievements();
-            
-            // 添加动画效果
-            addClickEffects(e);
-            
-            // 更新消息
+            addClickEffects(e, currentCombo); // MODIFICATION: Pass currentCombo
             updateMessage();
         });
 
         function showCombo(combo) {
+            if (comboTimeoutId) {
+                clearTimeout(comboTimeoutId);
+            }
+
             comboDisplay.textContent = `${combo}x COMBO!`;
+
+            if (combo < 5) {
+                comboDisplay.style.color = '#ff4757'; // Default Red-pink
+                comboDisplay.style.textShadow = '2px 2px 4px rgba(0,0,0,0.5)';
+            } else if (combo < 10) {
+                comboDisplay.style.color = '#ffa502'; // Orange
+                comboDisplay.style.textShadow = '2px 2px 4px rgba(0,0,0,0.5)';
+            } else if (combo < 20) {
+                comboDisplay.style.color = '#ffeb3b'; // Yellow
+                comboDisplay.style.textShadow = '2px 2px 4px rgba(80,80,0,0.6)'; // Darker shadow for yellow
+            } else if (combo < 30) {
+                comboDisplay.style.color = '#4caf50'; // Green
+                comboDisplay.style.textShadow = '2px 2px 4px rgba(0,0,0,0.5)';
+            } else {
+                comboDisplay.style.color = '#2196F3'; // Blue
+                comboDisplay.style.textShadow = '2px 2px 4px rgba(0,0,0,0.5)';
+            }
+            
             comboDisplay.style.opacity = '1';
             comboDisplay.style.transform = 'translate(-50%, -50%) scale(1.2)';
             
-            setTimeout(() => {
+            comboTimeoutId = setTimeout(() => {
                 comboDisplay.style.opacity = '0';
-                comboDisplay.style.transform = 'translate(-50%, -50%) scale(1)';
-            }, 800);
+                comboDisplay.style.transform = 'translate(-50%, -50%) scale(1)'; // CSS transition handles the fade
+            }, 800); // Time before fade starts
         }
 
         function updateLoveLevel() {
@@ -493,8 +516,7 @@
                 levelDisplay.textContent = loveLevel;
                 showAchievement("💖 爱意升级", `恭喜！你的爱意等级提升到 ${loveLevel} 级`);
                 
-                // 特殊效果
-                if (loveLevel % 5 === 0) {
+                if (loveLevel % 5 === 0) { // Every 5 levels, rainbow heart
                     heart.classList.add('rainbow');
                     setTimeout(() => {
                         heart.classList.remove('rainbow');
@@ -502,53 +524,66 @@
                 }
             }
             
-            // 更新爱意条
-            const percentage = Math.min((clickCount % 20) / 20 * 100, 100);
-            loveFill.style.width = percentage + '%';
-            lovePercentage.textContent = Math.round((clickCount / (loveLevel * 20)) * 100) + '%';
+            const percentageInLevel = Math.min((clickCount % 20) / 20 * 100, 100);
+            loveFill.style.width = percentageInLevel + '%';
+            // MODIFICATION: Make lovePercentage text match the bar's current level progress
+            lovePercentage.textContent = Math.round(percentageInLevel) + '%';
         }
 
-        function addClickEffects(e) {
-            // 点击动画
+        // MODIFICATION: Pass combo to createFloatingHearts
+        function addClickEffects(e, comboValue) {
             heart.classList.add('clicked');
-            setTimeout(() => {
-                heart.classList.remove('clicked');
-            }, 800);
+            setTimeout(() => heart.classList.remove('clicked'), 800);
             
-            // 跳动效果
             heart.classList.add('beating');
-            setTimeout(() => {
-                heart.classList.remove('beating');
-            }, 600);
+            setTimeout(() => heart.classList.remove('beating'), 600);
             
-            // 创建漂浮爱心
-            createFloatingHearts();
+            createFloatingHearts(comboValue); // Pass current combo
             
-            // 改变颜色
             if (clickCount > 10) {
                 heart.style.filter = `hue-rotate(${clickCount * 5}deg) drop-shadow(0 0 20px rgba(255, 71, 87, 0.6))`;
             }
         }
 
-        function createFloatingHearts() {
-            const hearts = ['💕', '💖', '💗', '💓', '💝', '💘', '💞'];
-            
-            for (let i = 0; i < 3; i++) {
+        // MODIFICATION: Create more/varied hearts based on combo
+        function createFloatingHearts(currentCombo = 0) {
+            const baseHearts = ['💕', '💖', '💗', '💓', '💝', '💘', '💞'];
+            let heartsToUse = [...baseHearts];
+            let numToCreate = 3;
+            let particleSize = 20;
+            let spreadFactor = 100;
+
+            if (currentCombo > 25) { // High combo
+                heartsToUse.push('🌟', '✨', '💫', '❤️');
+                numToCreate = 7;
+                particleSize = 28;
+                spreadFactor = 180;
+            } else if (currentCombo > 10) { // Mid combo
+                heartsToUse.push('🌟');
+                numToCreate = 5;
+                particleSize = 24;
+                spreadFactor = 140;
+            }
+            // Default: 3 hearts, 20px, spread 100
+
+            for (let i = 0; i < numToCreate; i++) {
                 const floatingHeart = document.createElement('div');
                 floatingHeart.className = 'floating-heart';
-                floatingHeart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+                floatingHeart.textContent = heartsToUse[Math.floor(Math.random() * heartsToUse.length)];
+                floatingHeart.style.fontSize = particleSize + 'px';
                 
                 const rect = heart.getBoundingClientRect();
                 const containerRect = specialEffects.getBoundingClientRect();
-                floatingHeart.style.left = (rect.left - containerRect.left + rect.width/2 + (Math.random() - 0.5) * 100) + 'px';
-                floatingHeart.style.top = (rect.top - containerRect.top + rect.height/2) + 'px';
-                floatingHeart.style.animationDelay = i * 0.1 + 's';
+                
+                floatingHeart.style.left = (rect.left - containerRect.left + rect.width / 2 + (Math.random() - 0.5) * spreadFactor) + 'px';
+                floatingHeart.style.top = (rect.top - containerRect.top + rect.height / 2 + (Math.random() - 0.5) * (spreadFactor / 1.5) ) + 'px';
+                floatingHeart.style.animationDelay = (Math.random() * 0.2) + 's'; // More random start
                 
                 specialEffects.appendChild(floatingHeart);
                 
                 setTimeout(() => {
                     floatingHeart.remove();
-                }, 3000);
+                }, 3000); // Duration of floatUp animation
             }
         }
 
@@ -558,9 +593,9 @@
         }
 
         function checkAchievements() {
-            achievements.forEach(achievement => {
-                if (clickCount === achievement.clicks) {
-                    showAchievement(achievement.title, achievement.desc);
+            achievements.forEach(ach => { // Changed variable name
+                if (clickCount === ach.clicks) {
+                    showAchievement(ach.title, ach.desc);
                 }
             });
         }
@@ -572,7 +607,7 @@
             
             setTimeout(() => {
                 achievement.classList.remove('show');
-            }, 3000);
+            }, 4000); // Slightly longer display for achievements
         }
 
         function resetHeart() {
@@ -580,6 +615,8 @@
             currentCombo = 0;
             maxCombo = 0;
             loveLevel = 1;
+            lastClickTime = 0; // Important for combo reset
+
             clickCountElement.textContent = clickCount;
             comboCountElement.textContent = maxCombo;
             levelDisplay.textContent = loveLevel;
@@ -614,25 +651,15 @@
                 clickCount++;
                 clickCountElement.textContent = clickCount;
                 
-                // 更新等级和爱意值
                 updateLoveLevel();
-                
-                // 检查成就
                 checkAchievements();
                 
-                // 跳动动画
                 heart.classList.add('beating');
-                setTimeout(() => {
-                    heart.classList.remove('beating');
-                }, 600);
+                setTimeout(() => heart.classList.remove('beating'), 600);
                 
-                // 创建漂浮爱心
-                createFloatingHearts();
+                createFloatingHearts(1); // MODIFICATION: Gentle effect for auto clicks
                 
-                // 改变颜色
                 heart.style.filter = `hue-rotate(${clickCount * 5}deg) drop-shadow(0 0 20px rgba(255, 71, 87, 0.6))`;
-                
-                // 更新消息
                 updateMessage();
             }, 800);
         }
@@ -650,11 +677,11 @@
             const randomMessage = loveMessages[Math.floor(Math.random() * loveMessages.length)];
             showAchievement("💌 爱的告白", randomMessage);
             
-            // 创建特殊效果
-            for (let i = 0; i < 20; i++) {
+            // MODIFICATION: Trigger a burst of high-tier particles for "sendLove"
+            for (let i = 0; i < 5; i++) { // Create 5 bursts
                 setTimeout(() => {
-                    createFloatingHearts();
-                }, i * 100);
+                    createFloatingHearts(30); // Use a high "combo" value for max effect
+                }, i * 80); // Stagger them slightly for a nice visual burst
             }
         }
     </script>
