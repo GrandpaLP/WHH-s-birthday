@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>可交互的爱心</title>
+    <title>给你的浪漫互动礼物 💕</title>
     <style>
         * {
             margin: 0;
@@ -19,11 +19,82 @@
             align-items: center;
             font-family: 'Arial', sans-serif;
             overflow: hidden;
+            position: relative;
+        }
+
+        /* 浪漫背景星星 */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.3; transform: scale(1); }
+            100% { opacity: 1; transform: scale(1.2); }
         }
 
         .container {
             text-align: center;
             position: relative;
+            z-index: 10;
+        }
+
+        .love-meter {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .love-bar {
+            width: 300px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px auto;
+            position: relative;
+        }
+
+        .love-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #ff6b9d, #ff4757, #ffa8c5);
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .love-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.3) 50%, transparent 70%);
+            animation: shine 2s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
         }
 
         .heart {
@@ -33,6 +104,7 @@
             cursor: pointer;
             margin: 0 auto 30px;
             transition: all 0.3s ease;
+            filter: drop-shadow(0 0 20px rgba(255, 71, 87, 0.3));
         }
 
         .heart::before,
@@ -41,7 +113,7 @@
             position: absolute;
             width: 100px;
             height: 160px;
-            background: #ff4757;
+            background: linear-gradient(45deg, #ff4757, #ff6b9d);
             border-radius: 50px 50px 0 0;
             transform: rotate(-45deg);
             transform-origin: 0 100%;
@@ -56,6 +128,7 @@
 
         .heart:hover:not(.beating):not(.clicked) {
             transform: scale(1.1);
+            filter: drop-shadow(0 0 30px rgba(255, 71, 87, 0.6));
         }
 
         .heart.beating {
@@ -64,6 +137,18 @@
 
         .heart.clicked {
             animation: heartPulse 0.8s ease-out;
+        }
+
+        .heart.rainbow {
+            animation: rainbowHeart 2s linear infinite;
+        }
+
+        @keyframes rainbowHeart {
+            0% { filter: hue-rotate(0deg) drop-shadow(0 0 20px rgba(255, 71, 87, 0.6)); }
+            25% { filter: hue-rotate(90deg) drop-shadow(0 0 20px rgba(71, 255, 87, 0.6)); }
+            50% { filter: hue-rotate(180deg) drop-shadow(0 0 20px rgba(71, 87, 255, 0.6)); }
+            75% { filter: hue-rotate(270deg) drop-shadow(0 0 20px rgba(255, 87, 71, 0.6)); }
+            100% { filter: hue-rotate(360deg) drop-shadow(0 0 20px rgba(255, 71, 87, 0.6)); }
         }
 
         @keyframes heartbeat {
@@ -87,6 +172,7 @@
             opacity: 0;
             transform: translateY(20px);
             transition: all 0.5s ease;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
         .message.show {
@@ -94,485 +180,482 @@
             transform: translateY(0);
         }
 
-        .counter {
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 15px 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             color: white;
-            font-size: 18px;
-            margin-top: 20px;
+            min-width: 120px;
         }
 
-        .particles {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            display: block;
         }
 
-        .particle {
-            position: absolute;
-            width: 6px;
-            height: 6px;
-            background: #ff4757;
-            border-radius: 50%;
-            pointer-events: none;
-            animation: float 3s ease-out forwards;
-        }
-
-        @keyframes float {
-            0% {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-            100% {
-                opacity: 0;
-                transform: translateY(-100px) scale(0);
-            }
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.8;
         }
 
         .controls {
             margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
         }
 
         .btn {
             background: rgba(255, 255, 255, 0.2);
             border: 2px solid white;
             color: white;
-            padding: 10px 20px;
-            margin: 0 10px;
+            padding: 12px 24px;
             border-radius: 25px;
             cursor: pointer;
             transition: all 0.3s ease;
             font-size: 16px;
+            backdrop-filter: blur(10px);
         }
 
         .btn:hover {
             background: rgba(255, 255, 255, 0.3);
             transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
 
-        /* 鼠标拖尾效果 */
-        .cursor-trail {
-            position: fixed;
-            width: 12px;
-            height: 12px;
-            pointer-events: none;
-            z-index: 9999;
+        .btn.active {
+            background: rgba(255, 71, 87, 0.8);
+            border-color: #ff4757;
         }
 
-        .cursor-trail::before {
-            content: '💖';
+        .special-effects {
             position: absolute;
-            font-size: 12px;
-            animation: trailFade 1s ease-out forwards;
-        }
-
-        @keyframes trailFade {
-            0% {
-                opacity: 1;
-                transform: scale(1) rotate(0deg);
-            }
-            100% {
-                opacity: 0;
-                transform: scale(0.3) rotate(180deg);
-            }
-        }
-
-        /* 惊喜模态框 */
-        .surprise-modal {
-            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.5s ease;
-        }
-
-        .surprise-modal.show {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .surprise-content {
-            background: linear-gradient(45deg, #ff6b9d, #ffa8c5);
-            padding: 40px;
-            border-radius: 20px;
-            text-align: center;
-            max-width: 400px;
-            transform: scale(0.5) rotate(-10deg);
-            transition: all 0.5s ease;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .surprise-modal.show .surprise-content {
-            transform: scale(1) rotate(0deg);
-        }
-
-        .surprise-title {
-            font-size: 28px;
-            color: white;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        .surprise-message {
-            font-size: 18px;
-            color: white;
-            margin-bottom: 30px;
-            line-height: 1.5;
-        }
-
-        .surprise-hearts {
-            font-size: 40px;
-            margin: 20px 0;
-            animation: surpriseHeartBeat 1s ease-in-out infinite;
-        }
-
-        @keyframes surpriseHeartBeat {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-        }
-
-        .close-surprise {
-            background: rgba(255, 255, 255, 0.9);
-            color: #ff6b9d;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .close-surprise:hover {
-            background: white;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        /* 烟花效果 */
-        .firework {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            border-radius: 50%;
             pointer-events: none;
+            z-index: 5;
         }
 
-        .firework-particle {
+        .floating-heart {
             position: absolute;
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            animation: explode 1.5s ease-out forwards;
+            font-size: 20px;
+            pointer-events: none;
+            animation: floatUp 3s ease-out forwards;
         }
 
-        @keyframes explode {
+        @keyframes floatUp {
             0% {
                 opacity: 1;
-                transform: scale(0) translate(0, 0);
+                transform: translateY(0) rotate(0deg) scale(1);
             }
             100% {
                 opacity: 0;
-                transform: scale(1) translate(var(--dx), var(--dy));
+                transform: translateY(-150px) rotate(360deg) scale(0.3);
+            }
+        }
+
+        .combo-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            font-weight: bold;
+            color: #ff4757;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .achievement {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(45deg, #ff6b9d, #ffa8c5);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            transform: translateX(400px);
+            transition: transform 0.5s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 1000;
+            max-width: 300px;
+        }
+
+        .achievement.show {
+            transform: translateX(0);
+        }
+
+        @media (max-width: 768px) {
+            .stats {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .love-bar {
+                width: 250px;
             }
         }
     </style>
 </head>
 <body>
+    <div class="stars" id="stars"></div>
+    
     <div class="container">
-        <div class="message" id="message">点击爱心来感受爱意 💕</div>
+        <div class="love-meter">
+            <div style="color: white; font-size: 18px; margin-bottom: 10px;">💕 爱意值</div>
+            <div class="love-bar">
+                <div class="love-fill" id="loveFill"></div>
+            </div>
+            <div style="color: white; font-size: 14px; margin-top: 5px;" id="lovePercentage">0%</div>
+        </div>
+
+        <div class="message" id="message">点击爱心来感受我们的爱意 💕</div>
         
         <div class="heart" id="heart"></div>
         
-        <div class="counter">
-            你已经点击了 <span id="clickCount">0</span> 次
+        <div class="combo-display" id="comboDisplay"></div>
+        
+        <div class="stats">
+            <div class="stat">
+                <span class="stat-value" id="clickCount">0</span>
+                <span class="stat-label">点击次数</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value" id="comboCount">0</span>
+                <span class="stat-label">最高连击</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value" id="levelDisplay">1</span>
+                <span class="stat-label">爱意等级</span>
+            </div>
         </div>
         
         <div class="controls">
-            <button class="btn" onclick="resetHeart()">重置</button>
-            <button class="btn" onclick="autoBeating()">自动跳动</button>
+            <button class="btn" onclick="resetHeart()">💫 重置</button>
+            <button class="btn" id="autoBtn" onclick="toggleAuto()">🎵 自动跳动</button>
+            <button class="btn" onclick="sendLove()">💌 表白</button>
         </div>
-        
-        <div class="particles" id="particles"></div>
-        
-        <!-- 惊喜模态框 -->
-        <div class="surprise-modal" id="surpriseModal">
-            <div class="surprise-content">
-                <div class="surprise-title" id="surpriseTitle">🎉 恭喜你！🎉</div>
-                <div class="surprise-hearts">💖💕💗💓💝</div>
-                <div class="surprise-message" id="surpriseMessage">
-                    哇！你已经点击了50次！<br>
-                    你的爱心能量已经满格啦！<br>
-                    ✨ 获得特殊称号：爱心大师 ✨
-                </div>
-                <button class="close-surprise" onclick="closeSurprise()">继续传递爱意 💕</button>
-            </div>
-        </div>
+    </div>
+
+    <div class="special-effects" id="specialEffects"></div>
+
+    <div class="achievement" id="achievement">
+        <div style="font-weight: bold; margin-bottom: 5px;" id="achievementTitle">🎉 新成就解锁！</div>
+        <div id="achievementDesc">你获得了新的称号！</div>
     </div>
 
     <script>
         let clickCount = 0;
+        let currentCombo = 0;
+        let maxCombo = 0;
+        let lastClickTime = 0;
         let isAutoBeating = false;
         let autoInterval;
+        let loveLevel = 1;
         
         const heart = document.getElementById('heart');
         const message = document.getElementById('message');
         const clickCountElement = document.getElementById('clickCount');
-        const particles = document.getElementById('particles');
-        const surpriseModal = document.getElementById('surpriseModal');
-        const surpriseTitle = document.getElementById('surpriseTitle');
-        const surpriseMessage = document.getElementById('surpriseMessage');
+        const comboCountElement = document.getElementById('comboCount');
+        const levelDisplay = document.getElementById('levelDisplay');
+        const loveFill = document.getElementById('loveFill');
+        const lovePercentage = document.getElementById('lovePercentage');
+        const specialEffects = document.getElementById('specialEffects');
+        const comboDisplay = document.getElementById('comboDisplay');
+        const achievement = document.getElementById('achievement');
+        const autoBtn = document.getElementById('autoBtn');
         
         const messages = [
-            "点击爱心来感受爱意 💕",
-            "哇！爱心在跳动 💓",
-            "感受到满满的爱意 ❤️",
-            "爱意正在传递中... 💖",
-            "你的心也在跳动吗？ 💗",
-            "爱让世界更美好 🌟",
-            "继续传递爱的能量 ✨",
-            "爱心满满！ 💝"
+            "点击爱心来感受我们的爱意 💕",
+            "哇！爱心在为你跳动 💓",
+            "感受到满满的爱意了吗？ ❤️",
+            "我的心也在为你跳动... 💖",
+            "这就是爱的感觉 💗",
+            "你让我的世界更美好 🌟",
+            "爱意正在加倍传递中... ✨",
+            "每次跳动都是对你的思念 💝",
+            "我们的爱越来越深了 💞",
+            "这份爱永远属于我们 💘"
         ];
 
-        const surpriseMessages = [
-            {
-                title: "🎉 爱心新手 🎉",
-                message: "恭喜！你已经点击了50次！<br>你是一个充满爱意的人！<br>✨ 获得称号：爱心新手 ✨"
-            },
-            {
-                title: "💖 爱心达人 💖", 
-                message: "太棒了！你已经点击了100次！<br>你的爱心能量越来越强！<br>🌟 获得称号：爱心达人 🌟"
-            },
-            {
-                title: "👑 爱心大师 👑",
-                message: "不可思议！你已经点击了150次！<br>你就是传说中的爱心大师！<br>👑 获得称号：爱心大师 👑"
-            },
-            {
-                title: "🚀 爱心传奇 🚀",
-                message: "震撼全场！你已经点击了200次！<br>你的爱已经传遍了整个宇宙！<br>🚀 获得称号：爱心传奇 🚀"
-            },
-            {
-                title: "🌟 爱心之神 🌟",
-                message: "登峰造极！你已经点击了250次！<br>你已经成为了爱心之神！<br>🌟 无上荣耀：爱心之神 🌟"
-            }
+        const achievements = [
+            { title: "💕 初恋的心跳", desc: "点击了第一下，爱情开始萌芽", clicks: 1 },
+            { title: "💖 心动时刻", desc: "连续点击10次，心跳加速中", clicks: 10 },
+            { title: "🌟 爱意满满", desc: "点击25次，爱意已经满溢", clicks: 25 },
+            { title: "💝 深情款款", desc: "点击50次，深深爱上了你", clicks: 50 },
+            { title: "👑 爱情王者", desc: "点击100次，你就是我的女王", clicks: 100 },
+            { title: "🚀 爱至深处", desc: "点击200次，爱你到宇宙尽头", clicks: 200 }
         ];
-        
-        // 鼠标拖尾效果
-        let mouseX = 0, mouseY = 0;
-        document.addEventListener('mousemove', function(e) {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-            
-            // 创建拖尾
-            if (Math.random() > 0.7) { // 随机生成，不要太密集
-                createTrail(mouseX, mouseY);
+
+        // 初始化
+        createStars();
+        showMessage();
+
+        // 创建星星背景
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 2 + 's';
+                star.style.animationDuration = (1 + Math.random() * 2) + 's';
+                starsContainer.appendChild(star);
             }
-        });
-        
-        function createTrail(x, y) {
-            const trail = document.createElement('div');
-            trail.className = 'cursor-trail';
-            trail.style.left = x + 'px';
-            trail.style.top = y + 'px';
-            document.body.appendChild(trail);
-            
-            setTimeout(() => {
-                trail.remove();
-            }, 1000);
         }
-        
+
         // 显示初始消息
-        setTimeout(() => {
-            message.classList.add('show');
-        }, 500);
-        
-        heart.addEventListener('click', function() {
+        function showMessage() {
+            setTimeout(() => {
+                message.classList.add('show');
+            }, 500);
+        }
+
+        // 爱心点击事件
+        heart.addEventListener('click', function(e) {
             if (isAutoBeating) return;
+            
+            const currentTime = Date.now();
+            
+            // 连击判断
+            if (currentTime - lastClickTime < 1000) {
+                currentCombo++;
+            } else {
+                currentCombo = 1;
+            }
+            
+            if (currentCombo > maxCombo) {
+                maxCombo = currentCombo;
+                comboCountElement.textContent = maxCombo;
+            }
+            
+            lastClickTime = currentTime;
+            
+            // 显示连击
+            if (currentCombo > 1) {
+                showCombo(currentCombo);
+            }
             
             clickCount++;
             clickCountElement.textContent = clickCount;
             
-            // 检查是否达到惊喜条件
-            if (clickCount % 50 === 0) {
-                showSurprise();
+            // 更新爱意值和等级
+            updateLoveLevel();
+            
+            // 检查成就
+            checkAchievements();
+            
+            // 添加动画效果
+            addClickEffects(e);
+            
+            // 更新消息
+            updateMessage();
+        });
+
+        function showCombo(combo) {
+            comboDisplay.textContent = `${combo}x COMBO!`;
+            comboDisplay.style.opacity = '1';
+            comboDisplay.style.transform = 'translate(-50%, -50%) scale(1.2)';
+            
+            setTimeout(() => {
+                comboDisplay.style.opacity = '0';
+                comboDisplay.style.transform = 'translate(-50%, -50%) scale(1)';
+            }, 800);
+        }
+
+        function updateLoveLevel() {
+            const newLevel = Math.floor(clickCount / 20) + 1;
+            
+            if (newLevel > loveLevel) {
+                loveLevel = newLevel;
+                levelDisplay.textContent = loveLevel;
+                showAchievement("💖 爱意升级", `恭喜！你的爱意等级提升到 ${loveLevel} 级`);
+                
+                // 特殊效果
+                if (loveLevel % 5 === 0) {
+                    heart.classList.add('rainbow');
+                    setTimeout(() => {
+                        heart.classList.remove('rainbow');
+                    }, 3000);
+                }
             }
             
-            // 添加点击动画
+            // 更新爱意条
+            const percentage = Math.min((clickCount % 20) / 20 * 100, 100);
+            loveFill.style.width = percentage + '%';
+            lovePercentage.textContent = Math.round((clickCount / (loveLevel * 20)) * 100) + '%';
+        }
+
+        function addClickEffects(e) {
+            // 点击动画
             heart.classList.add('clicked');
             setTimeout(() => {
                 heart.classList.remove('clicked');
             }, 800);
             
-            // 添加跳动效果
+            // 跳动效果
             heart.classList.add('beating');
             setTimeout(() => {
                 heart.classList.remove('beating');
             }, 600);
             
-            // 更新消息
-            const messageIndex = Math.min(clickCount, messages.length - 1);
-            message.textContent = messages[messageIndex];
+            // 创建漂浮爱心
+            createFloatingHearts();
             
-            // 创建粒子效果
-            createParticles();
-            
-            // 改变爱心颜色
-            if (clickCount > 5) {
-                heart.style.filter = `hue-rotate(${clickCount * 20}deg)`;
-            }
-        });
-        
-        function showSurprise() {
-            const surpriseIndex = Math.min(Math.floor(clickCount / 50) - 1, surpriseMessages.length - 1);
-            const surprise = surpriseMessages[surpriseIndex];
-            
-            surpriseTitle.textContent = surprise.title;
-            surpriseMessage.innerHTML = surprise.message;
-            
-            surpriseModal.classList.add('show');
-            
-            // 创建烟花效果
-            createFireworks();
-            
-            // 播放特殊音效（模拟）
-            createCelebrationParticles();
-        }
-        
-        function closeSurprise() {
-            surpriseModal.classList.remove('show');
-        }
-        
-        function createFireworks() {
-            for (let i = 0; i < 20; i++) {
-                setTimeout(() => {
-                    const firework = document.createElement('div');
-                    firework.className = 'firework';
-                    firework.style.left = Math.random() * window.innerWidth + 'px';
-                    firework.style.top = Math.random() * window.innerHeight + 'px';
-                    
-                    const colors = ['#ff4757', '#ff6b9d', '#ffa8c5', '#74b9ff', '#fdcb6e'];
-                    
-                    for (let j = 0; j < 8; j++) {
-                        const particle = document.createElement('div');
-                        particle.className = 'firework-particle';
-                        particle.style.background = colors[Math.floor(Math.random() * colors.length)];
-                        
-                        const angle = (j / 8) * Math.PI * 2;
-                        const distance = 50 + Math.random() * 50;
-                        const dx = Math.cos(angle) * distance;
-                        const dy = Math.sin(angle) * distance;
-                        
-                        particle.style.setProperty('--dx', dx + 'px');
-                        particle.style.setProperty('--dy', dy + 'px');
-                        
-                        firework.appendChild(particle);
-                    }
-                    
-                    document.body.appendChild(firework);
-                    
-                    setTimeout(() => {
-                        firework.remove();
-                    }, 1500);
-                }, i * 100);
+            // 改变颜色
+            if (clickCount > 10) {
+                heart.style.filter = `hue-rotate(${clickCount * 5}deg) drop-shadow(0 0 20px rgba(255, 71, 87, 0.6))`;
             }
         }
-        
-        function createCelebrationParticles() {
-            for (let i = 0; i < 50; i++) {
-                setTimeout(() => {
-                    const particle = document.createElement('div');
-                    particle.style.position = 'fixed';
-                    particle.style.left = Math.random() * window.innerWidth + 'px';
-                    particle.style.top = '-10px';
-                    particle.style.fontSize = '20px';
-                    particle.style.pointerEvents = 'none';
-                    particle.style.zIndex = '9999';
-                    
-                    const emojis = ['💖', '💕', '💗', '💓', '💝', '🌟', '✨', '🎉', '🎊'];
-                    particle.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-                    
-                    particle.style.animation = `float ${2 + Math.random() * 2}s ease-out forwards`;
-                    
-                    document.body.appendChild(particle);
-                    
-                    setTimeout(() => {
-                        particle.remove();
-                    }, 4000);
-                }, i * 50);
-            }
-        }
-        
-        function createParticles() {
-            for (let i = 0; i < 8; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
+
+        function createFloatingHearts() {
+            const hearts = ['💕', '💖', '💗', '💓', '💝', '💘', '💞'];
+            
+            for (let i = 0; i < 3; i++) {
+                const floatingHeart = document.createElement('div');
+                floatingHeart.className = 'floating-heart';
+                floatingHeart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
                 
-                const heartRect = heart.getBoundingClientRect();
-                const containerRect = particles.getBoundingClientRect();
+                const rect = heart.getBoundingClientRect();
+                const containerRect = specialEffects.getBoundingClientRect();
+                floatingHeart.style.left = (rect.left - containerRect.left + rect.width/2 + (Math.random() - 0.5) * 100) + 'px';
+                floatingHeart.style.top = (rect.top - containerRect.top + rect.height/2) + 'px';
+                floatingHeart.style.animationDelay = i * 0.1 + 's';
                 
-                particle.style.left = (heartRect.left - containerRect.left + heartRect.width/2) + 'px';
-                particle.style.top = (heartRect.top - containerRect.top + heartRect.height/2) + 'px';
-                particle.style.left = `calc(50% + ${(Math.random() - 0.5) * 100}px)`;
-                particle.style.top = `calc(50% + ${(Math.random() - 0.5) * 100}px)`;
-                
-                particles.appendChild(particle);
+                specialEffects.appendChild(floatingHeart);
                 
                 setTimeout(() => {
-                    particle.remove();
+                    floatingHeart.remove();
                 }, 3000);
             }
         }
-        
+
+        function updateMessage() {
+            const messageIndex = Math.min(Math.floor(clickCount / 10), messages.length - 1);
+            message.textContent = messages[messageIndex];
+        }
+
+        function checkAchievements() {
+            achievements.forEach(achievement => {
+                if (clickCount === achievement.clicks) {
+                    showAchievement(achievement.title, achievement.desc);
+                }
+            });
+        }
+
+        function showAchievement(title, desc) {
+            document.getElementById('achievementTitle').textContent = title;
+            document.getElementById('achievementDesc').textContent = desc;
+            achievement.classList.add('show');
+            
+            setTimeout(() => {
+                achievement.classList.remove('show');
+            }, 3000);
+        }
+
         function resetHeart() {
             clickCount = 0;
+            currentCombo = 0;
+            maxCombo = 0;
+            loveLevel = 1;
             clickCountElement.textContent = clickCount;
+            comboCountElement.textContent = maxCombo;
+            levelDisplay.textContent = loveLevel;
             message.textContent = messages[0];
-            heart.style.filter = 'none';
+            heart.style.filter = 'drop-shadow(0 0 20px rgba(255, 71, 87, 0.3))';
+            loveFill.style.width = '0%';
+            lovePercentage.textContent = '0%';
             
             if (isAutoBeating) {
                 clearInterval(autoInterval);
                 isAutoBeating = false;
+                autoBtn.classList.remove('active');
+                autoBtn.textContent = '🎵 自动跳动';
             }
         }
-        
-        function autoBeating() {
+
+        function toggleAuto() {
             if (isAutoBeating) {
                 clearInterval(autoInterval);
                 isAutoBeating = false;
+                autoBtn.classList.remove('active');
+                autoBtn.textContent = '🎵 自动跳动';
                 return;
             }
             
             isAutoBeating = true;
-            message.textContent = "爱心正在自动跳动 💓";
+            autoBtn.classList.add('active');
+            autoBtn.textContent = '⏸️ 停止跳动';
+            message.textContent = "爱心正在为你自动跳动 💓";
             
             autoInterval = setInterval(() => {
-                heart.classList.add('beating');
-                createParticles();
+                clickCount++;
+                clickCountElement.textContent = clickCount;
                 
+                // 更新等级和爱意值
+                updateLoveLevel();
+                
+                // 检查成就
+                checkAchievements();
+                
+                // 跳动动画
+                heart.classList.add('beating');
                 setTimeout(() => {
                     heart.classList.remove('beating');
                 }, 600);
                 
-                clickCount++;
-                clickCountElement.textContent = clickCount;
-                heart.style.filter = `hue-rotate(${clickCount * 10}deg)`;
+                // 创建漂浮爱心
+                createFloatingHearts();
                 
-                // 检查惊喜条件
-                if (clickCount % 50 === 0) {
-                    clearInterval(autoInterval);
-                    isAutoBeating = false;
-                    showSurprise();
-                }
-            }, 1000);
+                // 改变颜色
+                heart.style.filter = `hue-rotate(${clickCount * 5}deg) drop-shadow(0 0 20px rgba(255, 71, 87, 0.6))`;
+                
+                // 更新消息
+                updateMessage();
+            }, 800);
+        }
+
+        function sendLove() {
+            const loveMessages = [
+                "💕 你是我心中最美的风景",
+                "🌟 遇见你是我最大的幸运",
+                "💖 每天和你在一起都是最美好的一天",
+                "✨ 你的笑容是我最大的动力",
+                "💝 我的心里永远只有你",
+                "🌈 和你一起的未来充满色彩"
+            ];
+            
+            const randomMessage = loveMessages[Math.floor(Math.random() * loveMessages.length)];
+            showAchievement("💌 爱的告白", randomMessage);
+            
+            // 创建特殊效果
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    createFloatingHearts();
+                }, i * 100);
+            }
         }
     </script>
 </body>
